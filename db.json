@@ -5,13 +5,18 @@
       "type": "Apartamento",
       "city": "Balneário Camboriú",
       "neighborhood": "Centro",
-      "address": "Avenida Atlântica, 2500",
       "bedrooms": 4,
+      "bathrooms": 4,
+      "garage": 3,
+      "area": 280,
       "price": 3500000,
-      "description": "Apartamento de luxo frente mar, com 4 suítes, sacada com churrasqueira e 3 vagas de garagem. Vista panorâmica espetacular.",
+      "description": "Imagine acordar todos os dias com o som do mar e uma vista de tirar o fôlego! Este apartamento é perfeito para quem busca qualidade de vida. São 4 suítes espaçosas, uma sacada gourmet incrível para receber os amigos e 3 vagas de garagem. A localização é privilegiada, pertinho de tudo!",
+      "features": ["Frente Mar", "Sacada Gourmet", "Lazer Completo", "Alto Padrão"],
+      "coverPhoto": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600",
       "photos": [
-        "https://placehold.co/600x400/003366/FFFFFF?text=Frente+Mar",
-        "https://placehold.co/600x400/5c9ead/FFFFFF?text=Sacada+Gourmet"
+        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600",
+        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600"
       ]
     },
     {
@@ -19,12 +24,53 @@
       "type": "Apartamento",
       "city": "Balneário Camboriú",
       "neighborhood": "Pioneiros",
-      "address": "Rua Bruno Zabel, 150",
       "bedrooms": 2,
+      "bathrooms": 2,
+      "garage": 1,
+      "area": 85,
       "price": 980000,
-      "description": "Apartamento novo, com 2 dormitórios sendo 1 suíte, próximo à roda gigante. Área de lazer completa.",
+      "description": "Que tal morar em um dos bairros mais valorizados da cidade? Este apartamento novinho tem tudo que você precisa: 2 quartos aconchegantes (sendo 1 suíte), área de lazer completa com piscina, academia e salão de festas. E o melhor: fica a poucos minutos da famosa roda gigante!",
+      "features": ["Novo", "Lazer Completo", "Próximo à Roda Gigante"],
+      "coverPhoto": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600",
       "photos": [
-        "https://placehold.co/600x400/333333/FFFFFF?text=Lazer+Completo"
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600",
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BC003",
+      "type": "Cobertura",
+      "city": "Balneário Camboriú",
+      "neighborhood": "Barra Sul",
+      "bedrooms": 5,
+      "bathrooms": 6,
+      "garage": 4,
+      "area": 450,
+      "price": 8500000,
+      "description": "O céu é o limite! Esta cobertura espetacular oferece luxo e exclusividade. São 5 suítes master, piscina privativa no terraço, churrasqueira gourmet e uma vista 360° da cidade e do mar. O acabamento é de altíssimo padrão com automação completa!",
+      "features": ["Cobertura Duplex", "Piscina Privativa", "Vista 360°", "Automação"],
+      "coverPhoto": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600",
+        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BC004",
+      "type": "Apartamento",
+      "city": "Balneário Camboriú",
+      "neighborhood": "Praia dos Amores",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "garage": 2,
+      "area": 150,
+      "price": 1850000,
+      "description": "Viva momentos inesquecíveis neste apartamento com vista para o mar! Com 3 suítes bem distribuídas, sala ampla integrada, varanda gourmet e decoração moderna. O prédio oferece infraestrutura completa: piscinas, spa, academia e muito mais!",
+      "features": ["Vista Mar", "3 Suítes", "Varanda Gourmet", "Prédio Novo"],
+      "coverPhoto": "https://images.unsplash.com/photo-1567496898669-ee935f5f647a?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1567496898669-ee935f5f647a?w=800&h=600",
+        "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&h=600"
       ]
     },
     {
@@ -32,13 +78,53 @@
       "type": "Casa",
       "city": "Florianópolis",
       "neighborhood": "Jurerê Internacional",
-      "address": "Avenida dos Búzios, 1234",
       "bedrooms": 5,
+      "bathrooms": 6,
+      "garage": 4,
+      "area": 600,
       "price": 6800000,
-      "description": "Mansão espetacular em Jurerê, com 5 suítes, piscina privativa, espaço gourmet e automação residencial. A 300m da praia.",
+      "description": "Esta é a casa dos sonhos em Jurerê! São 5 suítes amplas, piscina privativa para aproveitar o verão, espaço gourmet completo e toda a tecnologia de automação residencial. O melhor? Você está a apenas 5 minutinhos de caminhada da praia. É viver em um resort particular!",
+      "features": ["Casa de Luxo", "Piscina", "Próximo à Praia", "Automação"],
+      "coverPhoto": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&h=600",
       "photos": [
-        "https://placehold.co/600x400/E8F5E9/000000?text=Piscina+Privativa",
-        "https://placehold.co/600x400/C8E6C9/000000?text=Espa%C3%A7o+Gourmet"
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&h=600",
+        "https://images.unsplash.com/photo-1601918774946-25832a4be0d6?w=800&h=600"
+      ]
+    },
+    {
+      "id": "FLN002",
+      "type": "Apartamento",
+      "city": "Florianópolis",
+      "neighborhood": "Agronômica",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "garage": 1,
+      "area": 65,
+      "price": 520000,
+      "description": "Perfeito para jovens profissionais! Apartamento moderno e bem localizado, próximo a universidades e ao centro. Com 2 quartos, sala integrada, cozinha americana e vaga de garagem. Prédio com salão de festas e churrasqueira!",
+      "features": ["Ótima Localização", "Próximo UFSC", "Prédio com Lazer"],
+      "coverPhoto": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600",
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600"
+      ]
+    },
+    {
+      "id": "FLN003",
+      "type": "Casa",
+      "city": "Florianópolis",
+      "neighborhood": "Lagoa da Conceição",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "garage": 2,
+      "area": 300,
+      "price": 2800000,
+      "description": "Casa charmosa com vista para a Lagoa! Perfeita para quem busca qualidade de vida. São 4 quartos (2 suítes), área gourmet com churrasqueira, jardim amplo e deck com vista. A apenas 10 minutos das praias da Joaquina e Mole!",
+      "features": ["Vista Lagoa", "Área Gourmet", "Jardim", "Estilo Rústico"],
+      "coverPhoto": "https://images.unsplash.com/photo-1598228723793-52759bba239c?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1598228723793-52759bba239c?w=800&h=600",
+        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&h=600"
       ]
     },
     {
@@ -46,23 +132,101 @@
       "type": "Apartamento",
       "city": "São José",
       "neighborhood": "Kobrasol",
-      "address": "Avenida Lédio João Martins, 800",
       "bedrooms": 3,
+      "bathrooms": 2,
+      "garage": 2,
+      "area": 98,
       "price": 750000,
-      "description": "Amplo apartamento no coração do Kobrasol, com 3 quartos, sacada e móveis planejados. Perto de todo o comércio.",
-      "photos": []
+      "description": "Localização é tudo, né? Este apartamento fica no coração do Kobrasol, pertinho de shopping, mercados e tudo mais! São 3 quartos bem distribuídos, sacada com churrasqueira e o charme dos móveis planejados já inclusos. Perfeito para sua família!",
+      "features": ["Centro Comercial", "Móveis Planejados", "2 Vagas"],
+      "coverPhoto": "https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1560184897-ae75f418493e?w=800&h=600"
+      ]
+    },
+    {
+      "id": "SJE002",
+      "type": "Casa",
+      "city": "São José",
+      "neighborhood": "Barreiros",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "garage": 2,
+      "area": 180,
+      "price": 580000,
+      "description": "Casa aconchegante em rua tranquila! Com 3 quartos, churrasqueira, quintal amplo e 2 vagas de garagem. Ideal para família com crianças e pets. Próximo a escolas, mercados e com fácil acesso ao centro!",
+      "features": ["Quintal Grande", "Rua Tranquila", "Aceita Pet"],
+      "coverPhoto": "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=600"
+      ]
+    },
+    {
+      "id": "SJE003",
+      "type": "Apartamento",
+      "city": "São José",
+      "neighborhood": "Campinas",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "garage": 1,
+      "area": 60,
+      "price": 380000,
+      "description": "Oportunidade única! Apartamento compacto mas muito bem aproveitado. 2 quartos, sala dois ambientes, cozinha integrada e vaga de garagem. Prédio com elevador e salão de festas. Excelente custo-benefício!",
+      "features": ["Econômico", "Com Elevador", "Boa Localização"],
+      "coverPhoto": "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&h=600"
+      ]
     },
     {
       "id": "ITJ001",
       "type": "Apartamento",
       "city": "Itajaí",
       "neighborhood": "Fazenda",
-      "address": "Rua Lauro Müller, 555",
       "bedrooms": 3,
+      "bathrooms": 3,
+      "garage": 2,
+      "area": 140,
       "price": 1200000,
-      "description": "Apartamento com vista para a Beira Rio, 3 suítes, alto padrão de acabamento. Próximo à Marina Itajaí.",
+      "description": "Que vista maravilhosa! Este apartamento de alto padrão tem 3 suítes com acabamento impecável e uma vista linda para a Beira Rio. Imagina tomar seu café da manhã contemplando o rio? E ainda fica pertinho da Marina, perfeito para quem ama o estilo de vida náutico!",
+      "features": ["Vista Beira Rio", "Alto Padrão", "Próximo Marina"],
+      "coverPhoto": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600",
       "photos": [
-        "https://placehold.co/600x400/154360/FFFFFF?text=Vista+Beira+Rio"
+        "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600"
+      ]
+    },
+    {
+      "id": "ITJ002",
+      "type": "Casa",
+      "city": "Itajaí",
+      "neighborhood": "Praia Brava",
+      "bedrooms": 4,
+      "bathrooms": 4,
+      "garage": 3,
+      "area": 350,
+      "price": 2400000,
+      "description": "Casa moderna a 300m da Praia Brava! Design contemporâneo com 4 suítes, home office, piscina aquecida e espaço gourmet completo. Condomínio fechado com segurança 24h. Perfeita para quem busca conforto e segurança!",
+      "features": ["Condomínio Fechado", "Piscina Aquecida", "Home Office", "Próximo à Praia"],
+      "coverPhoto": "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600"
+      ]
+    },
+    {
+      "id": "ITJ003",
+      "type": "Apartamento",
+      "city": "Itajaí",
+      "neighborhood": "Centro",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "garage": 1,
+      "area": 75,
+      "price": 450000,
+      "description": "No coração de Itajaí! Apartamento reformado com 2 quartos (1 suíte), cozinha planejada, sala ampla e vaga de garagem. Localização privilegiada próximo a bancos, comércio e restaurantes. Ideal para investimento!",
+      "features": ["Centro da Cidade", "Reformado", "Cozinha Planejada"],
+      "coverPhoto": "https://images.unsplash.com/photo-1560448075-bb485b067938?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1560448075-bb485b067938?w=800&h=600"
       ]
     },
     {
@@ -70,11 +234,170 @@
       "type": "Casa",
       "city": "Blumenau",
       "neighborhood": "Vila Nova",
-      "address": "Rua Theodoro Holtrup, 210",
       "bedrooms": 3,
+      "bathrooms": 2,
+      "garage": 2,
+      "area": 200,
       "price": 890000,
-      "description": "Casa charmosa em terreno amplo, com 3 quartos, edícula com churrasqueira e piscina. Rua tranquila e sem saída.",
-      "photos": []
+      "description": "Uma casa charmosa que combina conforto e privacidade! O terreno é super espaçoso, tem 3 quartos aconchegantes, uma edícula com churrasqueira para os finais de semana e até piscina! Fica numa rua tranquila e sem saída, perfeita para as crianças brincarem com segurança.",
+      "features": ["Piscina", "Edícula", "Rua sem Saída", "Terreno Grande"],
+      "coverPhoto": "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BLU002",
+      "type": "Apartamento",
+      "city": "Blumenau",
+      "neighborhood": "Ponta Aguda",
+      "bedrooms": 4,
+      "bathrooms": 3,
+      "garage": 2,
+      "area": 180,
+      "price": 1150000,
+      "description": "Apartamento de luxo em um dos melhores bairros de Blumenau! São 4 quartos (2 suítes), sala ampla com dois ambientes, varanda gourmet e acabamento de primeira. O prédio oferece piscina, academia e salão de festas!",
+      "features": ["Bairro Nobre", "4 Quartos", "Varanda Gourmet", "Lazer Completo"],
+      "coverPhoto": "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BLU003",
+      "type": "Casa",
+      "city": "Blumenau",
+      "neighborhood": "Garcia",
+      "bedrooms": 2,
+      "bathrooms": 1,
+      "garage": 1,
+      "area": 120,
+      "price": 420000,
+      "description": "Casa térrea perfeita para casal ou família pequena! Com 2 quartos, sala, cozinha americana, quintal nos fundos e garagem coberta. Localização excelente com fácil acesso ao centro e próximo a escolas!",
+      "features": ["Casa Térrea", "Quintal", "Boa Localização"],
+      "coverPhoto": "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BC005",
+      "type": "Studio",
+      "city": "Balneário Camboriú",
+      "neighborhood": "Centro",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "garage": 1,
+      "area": 45,
+      "price": 450000,
+      "description": "Studio moderno e funcional no coração de BC! Perfeito para investimento ou para quem busca praticidade. Totalmente mobiliado, com cozinha integrada, varanda e vaga de garagem. Prédio com rooftop e academia!",
+      "features": ["Mobiliado", "Rooftop", "Investimento", "Centro"],
+      "coverPhoto": "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800&h=600"
+      ]
+    },
+    {
+      "id": "FLN005",
+      "type": "Apartamento",
+      "city": "Florianópolis",
+      "neighborhood": "Ingleses",
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "garage": 1,
+      "area": 80,
+      "price": 680000,
+      "description": "A 400m da praia dos Ingleses! Apartamento novo com 2 quartos (1 suíte), sacada gourmet, vaga de garagem e área de lazer completa. Excelente para moradia ou temporada. Venha viver pertinho do mar!",
+      "features": ["Próximo à Praia", "Novo", "Sacada Gourmet"],
+      "coverPhoto": "https://images.unsplash.com/photo-1556020685-ae41abfc9365?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1556020685-ae41abfc9365?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BC006",
+      "type": "Apartamento",
+      "city": "Balneário Camboriú",
+      "neighborhood": "Nações",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "garage": 0,
+      "area": 50,
+      "price": 350000,
+      "description": "Oportunidade imperdível! Apartamento de 1 quarto em ótima localização. Ideal para quem quer começar a investir em BC. Próximo a mercados, farmácias e transporte público. Prédio com elevador!",
+      "features": ["Entrada Facilitada", "Boa Localização", "Com Elevador"],
+      "coverPhoto": "https://images.unsplash.com/photo-1565363887715-8884629e09ee?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1565363887715-8884629e09ee?w=800&h=600"
+      ]
+    },
+    {
+      "id": "ITJ004",
+      "type": "Cobertura",
+      "city": "Itajaí",
+      "neighborhood": "Centro",
+      "bedrooms": 3,
+      "bathrooms": 3,
+      "garage": 3,
+      "area": 250,
+      "price": 1800000,
+      "description": "Cobertura duplex com vista deslumbrante! São 3 suítes, terraço com churrasqueira, piscina privativa e 3 vagas de garagem. Localização privilegiada no centro de Itajaí. Um verdadeiro refúgio urbano!",
+      "features": ["Cobertura", "Piscina Privativa", "Vista Panorâmica"],
+      "coverPhoto": "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600"
+      ]
+    },
+    {
+      "id": "FLN006",
+      "type": "Casa",
+      "city": "Florianópolis",
+      "neighborhood": "Campeche",
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "garage": 2,
+      "area": 150,
+      "price": 1350000,
+      "description": "Casa moderna no Campeche! A 800m da praia, com 3 quartos (1 suíte), área gourmet, jardim e 2 vagas. Projeto arquitetônico diferenciado com muito uso de luz natural. Bairro em valorização constante!",
+      "features": ["Projeto Moderno", "Próximo à Praia", "Área em Valorização"],
+      "coverPhoto": "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?w=800&h=600"
+      ]
+    },
+    {
+      "id": "SJE004",
+      "type": "Apartamento",
+      "city": "São José",
+      "neighborhood": "Bela Vista",
+      "bedrooms": 4,
+      "bathrooms": 2,
+      "garage": 2,
+      "area": 110,
+      "price": 650000,
+      "description": "Apartamento espaçoso para família grande! São 4 quartos, sala ampla, cozinha grande, área de serviço e 2 vagas de garagem. Vista livre e apartamento bem arejado. Condomínio com playground e salão de festas!",
+      "features": ["4 Quartos", "Família Grande", "Vista Livre"],
+      "coverPhoto": "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&h=600"
+      ]
+    },
+    {
+      "id": "BLU004",
+      "type": "Apartamento",
+      "city": "Blumenau",
+      "neighborhood": "Centro",
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "garage": 1,
+      "area": 55,
+      "price": 320000,
+      "description": "Apartamento compacto no centro de Blumenau! Perfeito para jovens profissionais ou investidores. Com 1 quarto, sala integrada, cozinha americana e vaga de garagem. Próximo a tudo que você precisa!",
+      "features": ["Centro", "Compacto", "Investimento"],
+      "coverPhoto": "https://images.unsplash.com/photo-1560185127-6a86e55cbeec?w=800&h=600",
+      "photos": [
+        "https://images.unsplash.com/photo-1560185127-6a86e55cbeec?w=800&h=600"
+      ]
     }
   ]
 }

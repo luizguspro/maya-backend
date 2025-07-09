@@ -1,23 +1,67 @@
 // src/ai-assistant.js
 const OpenAI = require('openai');
 const { searchProperties } = require('./property-db');
-const { scheduleVisit } = require('./scheduler'); // Nova ferramenta
+const { scheduleVisit } = require('./scheduler');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const systemPrompt = `
-Você é Léo, um assistente virtual especialista da 'SC Imóveis', uma imobiliária de alto padrão em Santa Catarina.
-Sua comunicação é sempre clara, proativa e amigável.
-Seu objetivo principal é ajudar os clientes a encontrar o imóvel ideal e agendar visitas.
-As cidades que você atende são: Balneário Camboriú, Florianópolis, São José, Itajaí e Blumenau.
+Você é Léo, um corretor experiente da 'SC Imóveis'. Seja DIRETO e ASSERTIVO para converter leads em visitas.
 
-Você tem acesso a duas ferramentas:
-1. 'searchProperties': Use esta ferramenta quando o cliente expressar interesse em buscar imóveis.
-2. 'scheduleVisit': Use esta ferramenta quando o cliente pedir explicitamente para agendar uma visita a um imóvel específico. Ele precisa fornecer o ID do imóvel, a data e o horário.
+REGRAS CRÍTICAS:
+1. NUNCA forneça endereços completos - apenas bairro
+2. Apresente NO MÁXIMO 3 imóveis
+3. Seja MUITO ASSERTIVO - sempre direcione para agendamento
+4. Após mostrar imóveis, IMEDIATAMENTE pergunte: "Qual você quer visitar primeiro?"
+5. Se o cliente mostrar interesse, AGENDE NA HORA
 
-Ao encontrar imóveis, apresente-os de forma atraente, com ID, tipo, endereço, preço e descrição. Mencione que há fotos disponíveis.
-Se o cliente pedir para agendar, colete as informações necessárias (ID do imóvel, data, hora) antes de usar a ferramenta. Peça o nome dele para o agendamento.
-Para todas as outras perguntas, responda de forma natural e informativa.
+FORMATO PARA APRESENTAR IMÓVEIS:
+IMPORTANTE: Use [PROPERTY_BLOCK] para separar cada imóvel. Exemplo:
+
+[PROPERTY_BLOCK]
+✨ **Opção 1 - [Tipo] em [Bairro]**
+
+💰 **[preço formatado]**
+🛏️ **[quartos] quartos** | 🚿 **[banheiros] banheiros** | 🚗 **[vagas] vaga(s)**
+📐 **[área]m²**
+
+📝 *[Descrição em 1-2 linhas máximo]*
+
+✅ **Por que você vai amar:**
+- [Benefício 1]
+- [Benefício 2]
+
+🆔 **Código:** [ID]
+[PROPERTY_BLOCK]
+
+[Repita para cada imóvel]
+
+[PROPERTY_BLOCK]
+🎯 **Qual você quer conhecer primeiro?**
+
+Digite 1, 2 ou 3 para agendar sua visita HOJE ainda! 📱
+[PROPERTY_BLOCK]
+
+FLUXO DE CONVERSÃO RÁPIDA:
+1. Máximo 3 perguntas de qualificação
+2. Mostra imóveis
+3. IMEDIATAMENTE: "Qual você quer visitar?"
+4. Se hesitar: "Posso agendar para amanhã às 10h ou 14h. Qual prefere?"
+5. NUNCA deixe a conversa esfriar
+
+RESPOSTAS ASSERTIVAS:
+- "Não sei" → "Sem problemas! Vou te mostrar os 3 mais procurados. Um deles vai ser perfeito!"
+- "Preciso pensar" → "Claro! Enquanto pensa, vamos garantir um horário. Você pode cancelar depois!"
+- "Tá caro" → "Entendo! Esse tem o melhor custo-benefício da região. Vamos conhecer?"
+
+APÓS 2 INTERAÇÕES sem agendamento:
+"[Nome], percebi que você tem interesse! Vou reservar 15 minutos amanhã às 10h para conversarmos. Se não puder, é só me avisar! 😊"
+
+Ferramentas disponíveis:
+- 'searchProperties': busca imóveis
+- 'scheduleVisit': agenda visitas
+
+Seja SEMPRE otimista e crie urgência: "Esse imóvel tem muita procura!"
 `;
 
 const tools = [
@@ -32,6 +76,8 @@ const tools = [
                     city: { type: "string", description: "A cidade do imóvel, ex: 'Florianópolis'" },
                     type: { type: "string", description: "O tipo de imóvel, ex: 'Casa'" },
                     bedrooms: { type: "number", description: "O número mínimo de quartos" },
+                    minPrice: { type: "number", description: "Preço mínimo" },
+                    maxPrice: { type: "number", description: "Preço máximo" }
                 },
                 required: [],
             },
@@ -49,6 +95,7 @@ const tools = [
                     date: { type: "string", description: "A data desejada para a visita, formato AAAA-MM-DD" },
                     time: { type: "string", description: "O horário desejado, formato HH:MM" },
                     customerName: { type: "string", description: "O nome do cliente para o agendamento" },
+                    isPhoneCall: { type: "boolean", description: "Se é uma ligação ao invés de visita presencial" },
                 },
                 required: ["propertyId", "date", "time", "customerName"],
             },
@@ -56,11 +103,10 @@ const tools = [
     }
 ];
 
-// Agora a função recebe o histórico da conversa
 async function getAssistedResponse(conversationHistory) {
     const messages = [
         { role: "system", content: systemPrompt },
-        ...conversationHistory // Adiciona todas as mensagens anteriores
+        ...conversationHistory
     ];
 
     const response = await openai.chat.completions.create({
@@ -68,6 +114,7 @@ async function getAssistedResponse(conversationHistory) {
         messages: messages,
         tools: tools,
         tool_choice: "auto",
+        temperature: 0.8 // Um pouco mais criativo e assertivo
     });
 
     const responseMessage = response.choices[0].message;
@@ -82,13 +129,16 @@ async function getAssistedResponse(conversationHistory) {
             let functionResponse;
 
             if (functionName === 'searchProperties') {
-                functionResponse = await searchProperties(functionArgs);
+                // Limita a 3 resultados
+                const allResults = await searchProperties(functionArgs);
+                functionResponse = allResults.slice(0, 3);
             } else if (functionName === 'scheduleVisit') {
                 functionResponse = await scheduleVisit(
                     functionArgs.propertyId,
                     functionArgs.date,
                     functionArgs.time,
-                    functionArgs.customerName
+                    functionArgs.customerName,
+                    functionArgs.isPhoneCall
                 );
             }
             
@@ -103,6 +153,7 @@ async function getAssistedResponse(conversationHistory) {
         const finalResponse = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: messages,
+            temperature: 0.8
         });
 
         return finalResponse.choices[0].message.content;
