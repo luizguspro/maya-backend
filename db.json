@@ -1,0 +1,80 @@
+{
+  "properties": [
+    {
+      "id": "BC001",
+      "type": "Apartamento",
+      "city": "Balneário Camboriú",
+      "neighborhood": "Centro",
+      "address": "Avenida Atlântica, 2500",
+      "bedrooms": 4,
+      "price": 3500000,
+      "description": "Apartamento de luxo frente mar, com 4 suítes, sacada com churrasqueira e 3 vagas de garagem. Vista panorâmica espetacular.",
+      "photos": [
+        "https://placehold.co/600x400/003366/FFFFFF?text=Frente+Mar",
+        "https://placehold.co/600x400/5c9ead/FFFFFF?text=Sacada+Gourmet"
+      ]
+    },
+    {
+      "id": "BC002",
+      "type": "Apartamento",
+      "city": "Balneário Camboriú",
+      "neighborhood": "Pioneiros",
+      "address": "Rua Bruno Zabel, 150",
+      "bedrooms": 2,
+      "price": 980000,
+      "description": "Apartamento novo, com 2 dormitórios sendo 1 suíte, próximo à roda gigante. Área de lazer completa.",
+      "photos": [
+        "https://placehold.co/600x400/333333/FFFFFF?text=Lazer+Completo"
+      ]
+    },
+    {
+      "id": "FLN001",
+      "type": "Casa",
+      "city": "Florianópolis",
+      "neighborhood": "Jurerê Internacional",
+      "address": "Avenida dos Búzios, 1234",
+      "bedrooms": 5,
+      "price": 6800000,
+      "description": "Mansão espetacular em Jurerê, com 5 suítes, piscina privativa, espaço gourmet e automação residencial. A 300m da praia.",
+      "photos": [
+        "https://placehold.co/600x400/E8F5E9/000000?text=Piscina+Privativa",
+        "https://placehold.co/600x400/C8E6C9/000000?text=Espa%C3%A7o+Gourmet"
+      ]
+    },
+    {
+      "id": "SJE001",
+      "type": "Apartamento",
+      "city": "São José",
+      "neighborhood": "Kobrasol",
+      "address": "Avenida Lédio João Martins, 800",
+      "bedrooms": 3,
+      "price": 750000,
+      "description": "Amplo apartamento no coração do Kobrasol, com 3 quartos, sacada e móveis planejados. Perto de todo o comércio.",
+      "photos": []
+    },
+    {
+      "id": "ITJ001",
+      "type": "Apartamento",
+      "city": "Itajaí",
+      "neighborhood": "Fazenda",
+      "address": "Rua Lauro Müller, 555",
+      "bedrooms": 3,
+      "price": 1200000,
+      "description": "Apartamento com vista para a Beira Rio, 3 suítes, alto padrão de acabamento. Próximo à Marina Itajaí.",
+      "photos": [
+        "https://placehold.co/600x400/154360/FFFFFF?text=Vista+Beira+Rio"
+      ]
+    },
+    {
+      "id": "BLU001",
+      "type": "Casa",
+      "city": "Blumenau",
+      "neighborhood": "Vila Nova",
+      "address": "Rua Theodoro Holtrup, 210",
+      "bedrooms": 3,
+      "price": 890000,
+      "description": "Casa charmosa em terreno amplo, com 3 quartos, edícula com churrasqueira e piscina. Rua tranquila e sem saída.",
+      "photos": []
+    }
+  ]
+}
