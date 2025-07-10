@@ -3,38 +3,52 @@ const { Contato, Conversa, Mensagem, Negocio, PipelineEtapa } = require('../mode
 const logger = require('../utils/logger');
 
 class ConversationService {
-  constructor(empresaId = null) {
-    // Por enquanto vamos usar uma empresa padrão
-    // Em produção, isso viria da autenticação
-    this.empresaId = empresaId || process.env.DEFAULT_EMPRESA_ID || '00000000-0000-0000-0000-000000000001';
+  constructor() {
+    this.empresaId = process.env.DEFAULT_EMPRESA_ID || '00000000-0000-0000-0000-000000000001';
   }
 
-  /**
-   * Encontra ou cria um contato baseado no WhatsApp ID
-   */
-  async findOrCreateContact(whatsappId, nome = null) {
+  async findOrCreateContact(whatsapp, nome = null) {
     try {
-      // Remove o @s.whatsapp.net se existir
-      const cleanWhatsapp = whatsappId.replace('@s.whatsapp.net', '');
-      
+      // Buscar contato existente
       let contato = await Contato.findOne({
-        where: {
-          whatsapp: cleanWhatsapp,
+        where: { 
+          whatsapp: whatsapp,
           empresa_id: this.empresaId
         }
       });
 
       if (!contato) {
+        // Criar novo contato
         contato = await Contato.create({
           empresa_id: this.empresaId,
-          nome: nome || `Cliente ${cleanWhatsapp}`,
-          whatsapp: cleanWhatsapp,
-          telefone: cleanWhatsapp,
-          origem: 'whatsapp',
-          score: 50
+          nome: nome || whatsapp,
+          whatsapp: whatsapp,
+          origem: 'WhatsApp',
+          score: 50,
+          ativo: true
         });
 
-        logger.info(`Novo contato criado: ${contato.id}`);
+        logger.info(`Novo contato criado: ${whatsapp}`);
+
+        // Criar negócio na primeira etapa
+        const primeiraEtapa = await PipelineEtapa.findOne({
+          where: { 
+            empresa_id: this.empresaId,
+            ordem: 1
+          }
+        });
+
+        if (primeiraEtapa) {
+          await Negocio.create({
+            empresa_id: this.empresaId,
+            contato_id: contato.id,
+            etapa_id: primeiraEtapa.id,
+            titulo: `Lead - ${nome || whatsapp}`,
+            valor: 0,
+            probabilidade: 25,
+            origem: 'WhatsApp'
+          });
+        }
       }
 
       return contato;
@@ -44,16 +58,12 @@ class ConversationService {
     }
   }
 
-  /**
-   * Encontra ou cria uma conversa
-   */
-  async findOrCreateConversation(contatoId, canalId = null) {
+  async findOrCreateConversation(contatoId) {
     try {
       let conversa = await Conversa.findOne({
         where: {
           contato_id: contatoId,
-          empresa_id: this.empresaId,
-          status: 'aberta'
+          arquivada: false
         }
       });
 
@@ -61,20 +71,11 @@ class ConversationService {
         conversa = await Conversa.create({
           empresa_id: this.empresaId,
           contato_id: contatoId,
-          canal_id: canalId,
           canal_tipo: 'whatsapp',
           status: 'aberta',
-          bot_ativo: true,
           primeira_mensagem_em: new Date()
         });
-
-        logger.info(`Nova conversa criada: ${conversa.id}`);
       }
-
-      // Atualiza última mensagem
-      await conversa.update({
-        ultima_mensagem_em: new Date()
-      });
 
       return conversa;
     } catch (error) {
@@ -83,21 +84,26 @@ class ConversationService {
     }
   }
 
-  /**
-   * Salva uma mensagem no banco
-   */
   async saveMessage(conversaId, conteudo, remetenteTipo, metadata = {}) {
     try {
       const mensagem = await Mensagem.create({
         conversa_id: conversaId,
-        remetente_tipo: remetenteTipo, // 'contato', 'bot', 'usuario'
+        remetente_tipo: remetenteTipo,
         conteudo: conteudo,
         tipo_conteudo: metadata.tipo || 'texto',
         metadata: metadata,
-        transcricao: metadata.transcricao || null
+        transcricao: metadata.transcricao || null,
+        lida: false,
+        enviada: true
       });
 
-      logger.info(`Mensagem salva: ${mensagem.id}`);
+      // Atualizar última mensagem na conversa
+      await Conversa.update({
+        ultima_mensagem_em: new Date()
+      }, {
+        where: { id: conversaId }
+      });
+
       return mensagem;
     } catch (error) {
       logger.error('Erro ao salvar mensagem:', error);
@@ -105,73 +111,40 @@ class ConversationService {
     }
   }
 
-  /**
-   * Cria ou atualiza um negócio baseado na conversa
-   */
-  async updateDealFromConversation(contatoId, propertyInfo = null) {
+  async updateContactScore(contatoId, action) {
     try {
-      // Busca se já existe um negócio aberto para este contato
-      let negocio = await Negocio.findOne({
-        where: {
-          contato_id: contatoId,
-          empresa_id: this.empresaId,
-          ganho: null // Ainda não foi fechado
-        }
-      });
+      const contato = await Contato.findByPk(contatoId);
+      if (!contato) return;
 
-      // Busca a primeira etapa do pipeline
-      const primeiraEtapa = await PipelineEtapa.findOne({
-        where: {
-          empresa_id: this.empresaId,
-          ordem: 1
-        }
-      });
-
-      if (!negocio && propertyInfo) {
-        // Cria novo negócio
-        negocio = await Negocio.create({
-          empresa_id: this.empresaId,
-          contato_id: contatoId,
-          etapa_id: primeiraEtapa?.id,
-          titulo: `Interesse em ${propertyInfo.tipo || 'Imóvel'}`,
-          valor: propertyInfo.valor || 0,
-          origem: 'whatsapp',
-          probabilidade: 25
-        });
-
-        logger.info(`Novo negócio criado: ${negocio.id}`);
-      } else if (negocio && propertyInfo) {
-        // Atualiza valor se for maior
-        if (propertyInfo.valor > negocio.valor) {
-          await negocio.update({
-            valor: propertyInfo.valor
-          });
-        }
+      let scoreChange = 0;
+      switch (action) {
+        case 'message_sent': scoreChange = 5; break;
+        case 'property_viewed': scoreChange = 10; break;
+        case 'schedule_requested': scoreChange = 20; break;
+        case 'visit_scheduled': scoreChange = 30; break;
+        default: scoreChange = 0;
       }
 
-      return negocio;
+      const newScore = Math.min(100, contato.score + scoreChange);
+      await contato.update({ score: newScore });
+
+      logger.info(`Score do contato ${contatoId} atualizado para ${newScore}`);
     } catch (error) {
-      logger.error('Erro ao criar/atualizar negócio:', error);
-      throw error;
+      logger.error('Erro ao atualizar score:', error);
     }
   }
 
-  /**
-   * Move negócio para próxima etapa
-   */
   async advanceDealStage(negocioId) {
     try {
-      const negocio = await Negocio.findByPk(negocioId, {
-        include: [PipelineEtapa]
-      });
+      const negocio = await Negocio.findByPk(negocioId);
+      if (!negocio) return;
 
-      if (!negocio) return null;
-
-      // Busca próxima etapa
+      // Buscar próxima etapa
+      const etapaAtual = await PipelineEtapa.findByPk(negocio.etapa_id);
       const proximaEtapa = await PipelineEtapa.findOne({
         where: {
           empresa_id: this.empresaId,
-          ordem: negocio.PipelineEtapa.ordem + 1,
+          ordem: etapaAtual.ordem + 1,
           tipo: 'normal'
         }
       });
@@ -179,67 +152,13 @@ class ConversationService {
       if (proximaEtapa) {
         await negocio.update({
           etapa_id: proximaEtapa.id,
-          probabilidade: Math.min(negocio.probabilidade + 25, 100)
+          probabilidade: Math.min(100, negocio.probabilidade + 25)
         });
 
-        logger.info(`Negócio ${negocioId} movido para etapa ${proximaEtapa.nome}`);
+        logger.info(`Negócio ${negocioId} avançou para etapa ${proximaEtapa.nome}`);
       }
-
-      return negocio;
     } catch (error) {
-      logger.error('Erro ao avançar etapa do negócio:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Busca histórico de conversas
-   */
-  async getConversationHistory(contatoId, limit = 50) {
-    try {
-      const conversas = await Conversa.findAll({
-        where: {
-          contato_id: contatoId,
-          empresa_id: this.empresaId
-        },
-        include: [{
-          model: Mensagem,
-          limit: limit,
-          order: [['criado_em', 'DESC']]
-        }],
-        order: [['criado_em', 'DESC']]
-      });
-
-      return conversas;
-    } catch (error) {
-      logger.error('Erro ao buscar histórico:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Atualiza score do contato baseado em interações
-   */
-  async updateContactScore(contatoId, interactionType) {
-    try {
-      const contato = await Contato.findByPk(contatoId);
-      if (!contato) return;
-
-      let scoreChange = 0;
-      switch (interactionType) {
-        case 'message_sent': scoreChange = 2; break;
-        case 'property_viewed': scoreChange = 5; break;
-        case 'schedule_requested': scoreChange = 15; break;
-        case 'visit_scheduled': scoreChange = 20; break;
-        default: scoreChange = 1;
-      }
-
-      const newScore = Math.min(contato.score + scoreChange, 100);
-      await contato.update({ score: newScore });
-
-      logger.info(`Score do contato ${contatoId} atualizado para ${newScore}`);
-    } catch (error) {
-      logger.error('Erro ao atualizar score:', error);
+      logger.error('Erro ao avançar etapa:', error);
     }
   }
 }

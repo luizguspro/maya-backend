@@ -1,5 +1,5 @@
 // backend/src/models/index.js
-const { DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const { sequelize } = require('../database');
 
 // Model Empresa
@@ -13,10 +13,7 @@ const Empresa = sequelize.define('Empresa', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  cnpj: {
-    type: DataTypes.STRING(20),
-    unique: true
-  },
+  cnpj: DataTypes.STRING(20),
   telefone: DataTypes.STRING(20),
   email: DataTypes.STRING(255),
   endereco: DataTypes.TEXT,
@@ -35,8 +32,8 @@ const Empresa = sequelize.define('Empresa', {
   updatedAt: 'atualizado_em'
 });
 
-// Model Contato
-const Contato = sequelize.define('Contato', {
+// Model Usuario
+const Usuario = sequelize.define('Usuario', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
@@ -50,19 +47,53 @@ const Contato = sequelize.define('Contato', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
+  email: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    unique: true
+  },
+  senha: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
+  telefone: DataTypes.STRING(20),
+  cargo: DataTypes.STRING(100),
+  ultimo_acesso: DataTypes.DATE,
+  ativo: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  }
+}, {
+  tableName: 'usuarios',
+  timestamps: true,
+  createdAt: 'criado_em',
+  updatedAt: 'atualizado_em'
+});
+
+// Model Contato
+const Contato = sequelize.define('Contato', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
+  },
+  empresa_id: {
+    type: DataTypes.UUID,
+    references: { model: 'empresas', key: 'id' }
+  },
+  nome: DataTypes.STRING(255),
   email: DataTypes.STRING(255),
   telefone: DataTypes.STRING(20),
   whatsapp: DataTypes.STRING(20),
   cpf_cnpj: DataTypes.STRING(20),
-  data_nascimento: DataTypes.DATE,
   empresa: DataTypes.STRING(255),
   cargo: DataTypes.STRING(100),
   origem: DataTypes.STRING(50),
   score: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,
-    validate: { min: 0, max: 100 }
+    defaultValue: 50
   },
+  campos_customizados: DataTypes.JSONB,
   ativo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
@@ -74,7 +105,7 @@ const Contato = sequelize.define('Contato', {
   updatedAt: 'atualizado_em'
 });
 
-// Model Canal de Integração
+// Model Canal Integração (simplificado)
 const CanalIntegracao = sequelize.define('CanalIntegracao', {
   id: {
     type: DataTypes.UUID,
@@ -85,28 +116,18 @@ const CanalIntegracao = sequelize.define('CanalIntegracao', {
     type: DataTypes.UUID,
     references: { model: 'empresas', key: 'id' }
   },
-  tipo: {
-    type: DataTypes.STRING(50),
-    allowNull: false
-  },
+  tipo: DataTypes.STRING(50),
   nome: DataTypes.STRING(100),
-  telefone: DataTypes.STRING(20),
-  token_acesso: DataTypes.TEXT,
-  configuracoes: DataTypes.JSONB,
+  configuracao: DataTypes.JSONB,
   ativo: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
-  },
-  conectado: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  ultima_sincronizacao: DataTypes.DATE
+  }
 }, {
   tableName: 'canais_integracao',
   timestamps: true,
   createdAt: 'criado_em',
-  updatedAt: false
+  updatedAt: 'atualizado_em'
 });
 
 // Model Conversa
@@ -124,13 +145,10 @@ const Conversa = sequelize.define('Conversa', {
     type: DataTypes.UUID,
     references: { model: 'contatos', key: 'id' }
   },
-  canal_id: {
-    type: DataTypes.UUID,
-    references: { model: 'canais_integracao', key: 'id' }
-  },
+  canal_id: DataTypes.UUID,
   canal_tipo: {
     type: DataTypes.STRING(50),
-    allowNull: false
+    defaultValue: 'whatsapp'
   },
   status: {
     type: DataTypes.STRING(50),
@@ -140,17 +158,14 @@ const Conversa = sequelize.define('Conversa', {
     type: DataTypes.STRING(20),
     defaultValue: 'normal'
   },
-  atribuido_para: {
-    type: DataTypes.UUID,
-    references: { model: 'usuarios', key: 'id' }
-  },
+  atribuido_para: DataTypes.UUID,
   primeira_mensagem_em: DataTypes.DATE,
   ultima_mensagem_em: DataTypes.DATE,
   tempo_primeira_resposta: DataTypes.INTEGER,
   tempo_resolucao: DataTypes.INTEGER,
   bot_ativo: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false
+    defaultValue: true
   },
   arquivada: {
     type: DataTypes.BOOLEAN,
@@ -292,6 +307,9 @@ const Negocio = sequelize.define('Negocio', {
 });
 
 // Associações
+Empresa.hasMany(Usuario, { foreignKey: 'empresa_id' });
+Usuario.belongsTo(Empresa, { foreignKey: 'empresa_id' });
+
 Empresa.hasMany(Contato, { foreignKey: 'empresa_id' });
 Contato.belongsTo(Empresa, { foreignKey: 'empresa_id' });
 
@@ -310,8 +328,12 @@ Negocio.belongsTo(Contato, { foreignKey: 'contato_id' });
 PipelineEtapa.hasMany(Negocio, { foreignKey: 'etapa_id' });
 Negocio.belongsTo(PipelineEtapa, { foreignKey: 'etapa_id' });
 
+Usuario.hasMany(Negocio, { as: 'negociosResponsavel', foreignKey: 'responsavel_id' });
+Negocio.belongsTo(Usuario, { as: 'responsavel', foreignKey: 'responsavel_id' });
+
 module.exports = {
   Empresa,
+  Usuario,
   Contato,
   CanalIntegracao,
   Conversa,

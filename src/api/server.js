@@ -4,6 +4,8 @@ const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
 const logger = require('../utils/logger');
+const pipelineAutomation = require('../services/pipelineAutomation');
+const initDatabase = require('../database/init');
 
 const app = express();
 const server = http.createServer(app);
@@ -34,21 +36,26 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date(),
-    database: 'connected'
+    database: 'connected',
+    automation: pipelineAutomation.isRunning ? 'running' : 'stopped'
   });
 });
 
 // Importar e usar rotas
 try {
+  const authRoutes = require('./routes/auth');
   const dashboardRoutes = require('./routes/dashboard');
   const conversationsRoutes = require('./routes/conversations');
   const pipelineRoutes = require('./routes/pipeline');
   const contactsRoutes = require('./routes/contacts');
+  const automationRoutes = require('./routes/automation');
 
+  app.use('/api/auth', authRoutes);
   app.use('/api/dashboard', dashboardRoutes);
   app.use('/api/conversations', conversationsRoutes);
   app.use('/api/pipeline', pipelineRoutes);
   app.use('/api/contacts', contactsRoutes);
+  app.use('/api/automation', automationRoutes);
 } catch (error) {
   logger.warn('Algumas rotas não foram carregadas:', error.message);
 }
@@ -82,13 +89,65 @@ app.emitToCompany = emitToCompany;
 
 const PORT = process.env.API_PORT || 3001;
 
-server.listen(PORT, () => {
-  logger.info(`🚀 API Server rodando na porta ${PORT}`);
-  logger.info(`📍 Endpoints disponíveis:`);
-  logger.info(`   - GET  /api/health`);
-  logger.info(`   - GET  /api/dashboard/kpis`);
-  logger.info(`   - GET  /api/dashboard/recent-activities`);
-  logger.info(`   - GET  /api/dashboard/performance-data`);
-  logger.info(`   - GET  /api/dashboard/channel-performance`);
-  logger.info(`   - GET  /api/conversations`);
+// Função principal de inicialização
+const startServer = async () => {
+  try {
+    // Inicializar banco de dados
+    await initDatabase();
+    
+    // Iniciar servidor
+    server.listen(PORT, () => {
+      logger.info(`🚀 API Server rodando na porta ${PORT}`);
+      logger.info(`📍 Endpoints disponíveis:`);
+      logger.info(`   - GET  /api/health`);
+      logger.info(`   - GET  /api/dashboard/kpis`);
+      logger.info(`   - GET  /api/dashboard/recent-activities`);
+      logger.info(`   - GET  /api/dashboard/performance-data`);
+      logger.info(`   - GET  /api/dashboard/channel-performance`);
+      logger.info(`   - GET  /api/conversations`);
+      logger.info(`   - GET  /api/pipeline/stages`);
+      logger.info(`   - GET  /api/pipeline/deals`);
+      logger.info(`   - POST /api/pipeline/deals`);
+      logger.info(`   - PUT  /api/pipeline/deals/:id/move`);
+      logger.info(`   - GET  /api/automation/status`);
+      logger.info(`   - POST /api/automation/start`);
+      logger.info(`   - POST /api/automation/stop`);
+      logger.info(`   - POST /api/automation/run-now`);
+      
+      // Iniciar serviço de automação
+      logger.info(`🤖 Iniciando serviço de automação do pipeline...`);
+      pipelineAutomation.start();
+    });
+  } catch (error) {
+    logger.error('❌ Erro ao iniciar servidor:', error);
+    process.exit(1);
+  }
+};
+
+// Iniciar servidor
+startServer();
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM recebido, fechando servidor...');
+  
+  // Parar automação
+  pipelineAutomation.stop();
+  
+  server.close(() => {
+    logger.info('Servidor fechado');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT recebido, fechando servidor...');
+  
+  // Parar automação
+  pipelineAutomation.stop();
+  
+  server.close(() => {
+    logger.info('Servidor fechado');
+    process.exit(0);
+  });
 });
