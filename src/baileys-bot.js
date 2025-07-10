@@ -1,4 +1,4 @@
-// src/baileys-bot.js
+// backend/src/baileys-bot.js
 require('dotenv').config();
 const makeWASocket = require('@whiskeysockets/baileys').default;
 const { useMultiFileAuthState, downloadMediaMessage, DisconnectReason } = require('@whiskeysockets/baileys');
@@ -14,6 +14,10 @@ const { searchProperties } = require('./property-db');
 const logger = require('./utils/logger');
 const FollowUpManager = require('./follow-up');
 
+// Importar database e serviço de conversas
+const { testConnection } = require('./database');
+const ConversationService = require('./services/conversationService');
+
 const whisperClient = new WhisperClient();
 const tempDir = process.env.TEMP_DIR || './temp';
 const processingJobs = new Map();
@@ -22,7 +26,17 @@ const conversationHistories = new Map();
 const lastMessageTime = new Map();
 const conversationStates = new Map();
 
+// Instância do serviço de conversas
+const conversationService = new ConversationService();
+
 async function connectToWhatsApp() {
+    // Primeiro testa conexão com o banco
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+        logger.error('Não foi possível conectar ao banco de dados. Encerrando...');
+        process.exit(1);
+    }
+
     const { state, saveCreds } = await useMultiFileAuthState('auth_info_baileys');
     const sock = makeWASocket({ auth: state, printQRInTerminal: true, logger: pino({ level: 'silent' }) });
 
@@ -36,7 +50,7 @@ async function connectToWhatsApp() {
         if (connection === 'close') {
             const shouldReconnect = (lastDisconnect.error instanceof Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
             if (shouldReconnect) connectToWhatsApp();
-        } else if (connection === 'open') logger.info('✅ Conexão estabelecida!');
+        } else if (connection === 'open') logger.info('✅ Conexão WhatsApp estabelecida!');
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -72,18 +86,48 @@ async function connectToWhatsApp() {
 
         try {
             processingJobs.set(chatId, true);
+
+            // Criar ou buscar contato no banco
+            const pushName = msg.pushName || null;
+            const contato = await conversationService.findOrCreateContact(chatId, pushName);
+            
+            // Criar ou buscar conversa
+            const conversa = await conversationService.findOrCreateConversation(contato.id);
+
             let userInput = null;
+            let messageMetadata = {};
 
             if (audioMessage) {
                 logger.info(`Recebido ÁUDIO de ${chatId}`);
-                userInput = await handleAudioMessage(sock, msg);
+                const transcription = await handleAudioMessage(sock, msg);
+                if (transcription) {
+                    userInput = transcription;
+                    messageMetadata = {
+                        tipo: 'audio',
+                        transcricao: transcription,
+                        duracao: audioMessage.seconds
+                    };
+                }
             } else if (textMessage) {
                 logger.info(`Recebido TEXTO de ${chatId}: "${textMessage}"`);
                 userInput = textMessage;
+                messageMetadata = { tipo: 'texto' };
             }
 
             if (userInput) {
-                await generateAndSendAiResponse(sock, msg, userInput, followUpManager);
+                // Salvar mensagem do contato no banco
+                await conversationService.saveMessage(
+                    conversa.id, 
+                    userInput, 
+                    'contato', 
+                    messageMetadata
+                );
+
+                // Atualizar score do contato
+                await conversationService.updateContactScore(contato.id, 'message_sent');
+
+                // Gerar resposta do bot
+                await generateAndSendAiResponse(sock, msg, userInput, followUpManager, contato, conversa);
             }
 
         } catch (error) {
@@ -137,7 +181,7 @@ async function handleAudioMessage(sock, msg) {
     }
 }
 
-async function generateAndSendAiResponse(sock, originalMessage, userInput, followUpManager) {
+async function generateAndSendAiResponse(sock, originalMessage, userInput, followUpManager, contato, conversa) {
     const chatId = originalMessage.key.remoteJid;
     
     if (!conversationHistories.has(chatId)) {
@@ -155,6 +199,8 @@ async function generateAndSendAiResponse(sock, originalMessage, userInput, follo
             role: "system", 
             content: `Estado atual da conversa: ${JSON.stringify(conversationState)}. ` +
                     `Mensagens no histórico: ${history.length}. ` +
+                    `Nome do cliente: ${contato.nome}. ` +
+                    `Score do lead: ${contato.score}/100. ` +
                     `IMPORTANTE: Seja assertivo e direto. Após mostrar imóveis, SEMPRE proponha agendar visita imediatamente.`
         }
     ];
@@ -168,59 +214,74 @@ async function generateAndSendAiResponse(sock, originalMessage, userInput, follo
             history.splice(0, history.length - 20);
         }
         
+        // Salvar resposta do bot no banco
+        await conversationService.saveMessage(
+            conversa.id,
+            botResponseText.replace(/\[PROPERTY_BLOCK\]/g, ''), // Remove marcadores
+            'bot',
+            { tipo: 'texto' }
+        );
+
         // Verifica se a resposta contém marcador de imóveis divididos
         if (botResponseText.includes('[PROPERTY_BLOCK]')) {
-            // Divide a resposta em blocos
             const blocks = botResponseText.split('[PROPERTY_BLOCK]').filter(b => b.trim());
             
-            // Envia cada bloco separadamente
             for (let i = 0; i < blocks.length; i++) {
                 const block = blocks[i].trim();
                 if (block) {
                     await sock.sendMessage(chatId, { text: block }, i === 0 ? { quoted: originalMessage } : {});
                     
-                    // Extrai ID do imóvel do bloco
                     const idMatch = block.match(/🆔 \*\*Código:\*\* (\w+)/);
                     if (idMatch) {
                         const propertyId = idMatch[1];
                         const allProperties = await searchProperties({});
                         const property = allProperties.find(p => p.id === propertyId);
                         
-                        // Envia foto logo após o imóvel
-                        if (property && (property.coverPhoto || property.photos?.length > 0)) {
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                            const photoUrl = property.coverPhoto || property.photos[0];
-                            try {
-                                await sock.sendMessage(chatId, { 
-                                    image: { url: photoUrl }
-                                });
-                            } catch (photoError) {
-                                logger.error(`Erro ao enviar foto: ${photoError.message}`);
+                        // Atualizar score e criar/atualizar negócio
+                        await conversationService.updateContactScore(contato.id, 'property_viewed');
+                        
+                        if (property) {
+                            await conversationService.updateDealFromConversation(
+                                contato.id,
+                                {
+                                    tipo: property.type,
+                                    valor: property.price
+                                }
+                            );
+
+                            // Enviar foto se disponível
+                            if (property.coverPhoto || property.photos?.length > 0) {
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                                const photoUrl = property.coverPhoto || property.photos[0];
+                                try {
+                                    await sock.sendMessage(chatId, { 
+                                        image: { url: photoUrl }
+                                    });
+                                } catch (photoError) {
+                                    logger.error(`Erro ao enviar foto: ${photoError.message}`);
+                                }
                             }
                         }
                     }
                     
-                    // Delay entre blocos
                     if (i < blocks.length - 1) {
                         await new Promise(resolve => setTimeout(resolve, 1500));
                     }
                 }
             }
             
-            // Adiciona imóveis ao follow-up
             const allIds = botResponseText.match(/🆔 \*\*Código:\*\* (\w+)/g)?.map(match => match.replace(/🆔 \*\*Código:\*\* /, ''));
             if (allIds && allIds.length > 0) {
                 followUpManager.addToFollowUp(chatId, allIds);
             }
             
         } else {
-            // Envia resposta normal (sem imóveis)
             await sock.sendMessage(chatId, { text: botResponseText }, { quoted: originalMessage });
         }
         
         // Atualiza estado da conversa
         const propertyIds = botResponseText.match(/🆔 \*\*Código:\*\* (\w+)/g)?.map(match => match.replace(/🆔 \*\*Código:\*\* /, ''));
-        updateConversationState(chatId, botResponseText, propertyIds, conversationStates);
+        updateConversationState(chatId, botResponseText, propertyIds, conversationStates, contato, conversationService);
 
     } catch (error) {
         logger.error(`Erro ao obter resposta da IA: ${error}`);
@@ -230,7 +291,7 @@ async function generateAndSendAiResponse(sock, originalMessage, userInput, follo
     }
 }
 
-function updateConversationState(chatId, responseText, propertyIds, statesMap) {
+async function updateConversationState(chatId, responseText, propertyIds, statesMap, contato, conversationService) {
     const currentState = statesMap.get(chatId) || { stage: 'initial' };
     
     if (responseText.includes("para morar ou investir")) {
@@ -243,8 +304,20 @@ function updateConversationState(chatId, responseText, propertyIds, statesMap) {
         statesMap.set(chatId, { stage: 'qualifying', step: 'bedrooms' });
     } else if (responseText.includes("agendada para")) {
         statesMap.set(chatId, { stage: 'scheduled' });
+        // Atualizar score significativamente quando agenda visita
+        await conversationService.updateContactScore(contato.id, 'visit_scheduled');
+        
+        // Buscar negócio e avançar etapa
+        const negocios = await conversationService.Negocio.findAll({
+            where: { contato_id: contato.id, ganho: null }
+        });
+        
+        if (negocios.length > 0) {
+            await conversationService.advanceDealStage(negocios[0].id);
+        }
     } else if (responseText.includes("Vamos agendar")) {
         statesMap.set(chatId, { stage: 'scheduling' });
+        await conversationService.updateContactScore(contato.id, 'schedule_requested');
     } else if (propertyIds && propertyIds.length > 0) {
         statesMap.set(chatId, { stage: 'presented_properties', interactionCount: (currentState.interactionCount || 0) + 1 });
     }
@@ -268,8 +341,8 @@ function startCleanupSchedule() {
     }, 60 * 60 * 1000);
 }
 
-logger.info("Iniciando o bot assistente imobiliário v2.5...");
-logger.info("Melhorias: Mensagens divididas em blocos e abordagem mais assertiva");
+logger.info("Iniciando o bot assistente imobiliário v3.0...");
+logger.info("Integração com PostgreSQL ativada");
 
 startCleanupSchedule();
 connectToWhatsApp();
