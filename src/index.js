@@ -1,14 +1,12 @@
 // backend/src/index.js
-require('dotenv').config();
-const logger = require('./utils/logger');
-const initDatabase = require('./scripts/initDatabase');
-const { testConnection } = require('./database');
+require('dotenv').config({ path: '../.env' });
+const { testConnection } = require('../../shared/database');
 
-async function startApplication() {
+async function startAPI() {
   try {
-    logger.info('=================================');
-    logger.info('    Maya CRM - Iniciando...      ');
-    logger.info('=================================');
+    console.log('=================================');
+    console.log('    Maya API - Iniciando...      ');
+    console.log('=================================');
 
     // Testar conexão com banco
     const dbConnected = await testConnection();
@@ -17,49 +15,56 @@ async function startApplication() {
     }
 
     // Inicializar dados padrão
+    const initDatabase = require('./scripts/initDatabase');
     await initDatabase();
 
-    // Iniciar bot e API em processos separados
-    if (process.env.RUN_MODE === 'bot') {
-      logger.info('Iniciando em modo BOT...');
-      require('./baileys-bot');
-    } else if (process.env.RUN_MODE === 'api') {
-      logger.info('Iniciando em modo API...');
-      require('./api/server');
+    // Importar server.js que carrega as rotas
+    require('./api/server');
+    
+    // Agora iniciar o servidor através da função startServer
+    const { startServer } = require('./api/server');
+    
+    // Chamar startServer se ela existir
+    if (typeof startServer === 'function') {
+      await startServer();
     } else {
-      logger.info('Iniciando BOT e API...');
-      // Por padrão, inicia ambos
-      require('./baileys-bot');
-      require('./api/server');
+      // Se não tiver a função, iniciar manualmente
+      const { server } = require('./api/server');
+      const PORT = process.env.API_PORT || 3001;
+      
+      server.listen(PORT, () => {
+        console.log(`🚀 API Server rodando na porta ${PORT}`);
+        console.log(`📍 Teste em: http://localhost:${PORT}/api/health`);
+      });
     }
 
   } catch (error) {
-    logger.error('Erro fatal ao iniciar aplicação:', error);
+    console.error('Erro fatal ao iniciar API:', error);
+    console.error('Stack:', error.stack);
     process.exit(1);
   }
 }
 
-// Tratamento de erros não capturados
+// Tratamento de erros
 process.on('uncaughtException', (error) => {
-  logger.error('Erro não capturado:', error);
+  console.error('Erro não capturado:', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Promessa rejeitada não tratada:', reason);
+  console.error('Promessa rejeitada não tratada:', reason);
   process.exit(1);
 });
 
-// Tratamento de sinais de encerramento
 process.on('SIGINT', () => {
-  logger.info('Recebido SIGINT, encerrando graciosamente...');
+  console.log('Recebido SIGINT, encerrando graciosamente...');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-  logger.info('Recebido SIGTERM, encerrando graciosamente...');
+  console.log('Recebido SIGTERM, encerrando graciosamente...');
   process.exit(0);
 });
 
-// Iniciar aplicação
-startApplication();
+// Iniciar API
+startAPI();
